@@ -4,8 +4,8 @@ resource "azuredevops_project" "blog" {
   work_item_template = "Agile"
 }
 
-# default repo is unusable by terraform
-# data "azuredevops_git_repository" "blog-default-repo" {
+# Default repo is unusable by terraform
+# data "azuredevops_git_repository" "blog-default" {
 #   project_id = azuredevops_project.blog.id
 #   name       = "blog"
 # }
@@ -38,6 +38,23 @@ resource "azuredevops_git_repository" "blog" {
 #   ref_branch    = "refs/heads/main" #data.azuredevops_git_repository.blog.default_branch
 # }
 
+resource "azuredevops_git_repository_file" "readme-zero" {
+  repository_id       = azuredevops_git_repository.blog.id
+  file                = "README.md"
+  content             = ""
+  branch              = "refs/heads/main"
+  commit_message      = "README zeroed"
+  overwrite_on_create = true
+
+  # add content, to prevent update it after changes via UI or humans
+  lifecycle {
+    ignore_changes = [
+      file,
+      commit_message
+    ]
+  }
+}
+
 resource "azuredevops_git_repository_file" "default_pipeline" {
   repository_id = azuredevops_git_repository.blog.id
   file          = "azure-pipelines.yml"
@@ -48,11 +65,10 @@ resource "azuredevops_git_repository_file" "default_pipeline" {
   commit_message      = "Add azure-pipelines.yml"
   overwrite_on_create = true
 
-  # add content, to prevent update it after changes via UI or humans
+  # Add 'content,' to prevent update it after changes via UI or humans
   lifecycle {
     ignore_changes = [
       file,
-      content,
       commit_message
     ]
   }
@@ -72,9 +88,10 @@ resource "azuredevops_build_definition" "blog" {
   name       = "Blog Build Pipeline"
 
   repository {
-    repo_type = "TfsGit"
-    repo_id   = azuredevops_git_repository.blog.id
-    yml_path  = "azure-pipelines.yml"
+    repo_type   = "TfsGit"
+    repo_id     = azuredevops_git_repository.blog.id
+    yml_path    = "azure-pipelines.yml"
+    branch_name = "main"
   }
 
   lifecycle {
@@ -82,9 +99,18 @@ resource "azuredevops_build_definition" "blog" {
   }
 }
 
-resource "azuredevops_pipeline_authorization" "blog-auth" {
+resource "azuredevops_pipeline_authorization" "blog" {
   project_id  = azuredevops_project.blog.id
   resource_id = data.azuredevops_agent_queue.azure.id
   type        = "queue"
   pipeline_id = azuredevops_build_definition.blog.id
+}
+
+resource "azuredevops_serviceendpoint_azurerm" "blog" {
+  project_id                             = azuredevops_project.blog.id
+  service_endpoint_name                  = "${var.subscription_name}(${var.subscription_id})"
+  service_endpoint_authentication_scheme = "ServicePrincipal"
+  azurerm_spn_tenantid                   = var.tenant_id
+  azurerm_subscription_id                = var.subscription_id
+  azurerm_subscription_name              = var.subscription_name
 }

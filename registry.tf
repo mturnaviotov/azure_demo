@@ -12,7 +12,7 @@ resource "azuredevops_serviceendpoint_dockerregistry" "blog" {
   service_endpoint_name = "registry connection"
   docker_username       = azurerm_container_registry.blog.admin_username
   docker_password       = azurerm_container_registry.blog.admin_password
-  #  registry_type         = "Others"
+  # registry_type         = "Others"
 
   lifecycle {
     ignore_changes = [registry_type, description, docker_email, docker_registry, docker_username]
