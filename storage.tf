@@ -1,3 +1,4 @@
+# Required for credentials storage mount
 resource "azurerm_storage_account" "blog" {
   account_replication_type = "LRS"
   account_tier             = "Standard"

@@ -20,6 +20,11 @@ variable "ORG_SERVICE_URL" {
   type      = string
 }
 
+variable "PERSONAL_ACCESS_TOKEN" {
+  sensitive = true
+  type      = string
+}
+
 variable "appname" {
   type        = string
   default     = "blog"
