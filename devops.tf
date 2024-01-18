@@ -75,12 +75,12 @@ resource "azuredevops_git_repository_file" "default_pipeline" {
 }
 
 data "azuredevops_agent_pool" "azure" {
-  name = "Azure Pipelines"
+  name = var.agent_pool
 }
 
 data "azuredevops_agent_queue" "azure" {
   project_id = azuredevops_project.blog.id
-  name       = "Azure Pipelines"
+  name       = var.agent_pool_queue
 }
 
 resource "azuredevops_build_definition" "blog" {

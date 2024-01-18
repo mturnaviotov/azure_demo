@@ -40,6 +40,21 @@ variable "subscription_name" {
   type        = string
   description = "subscription_name"
 }
+
+variable "agent_pool" {
+  type        = string
+  description = "Agent Pool Name"
+  default     = "default"
+  # 'Azure Pipelines' for paid account
+}
+
+variable "agent_pool_queue" {
+  type        = string
+  description = "Agent Pool Queue Name"
+  default     = "default"
+  # 'Azure Pipelines' for paid account
+}
+
 ################################################
 
 resource "random_id" "app" {
