@@ -21,18 +21,6 @@ resource "azurerm_key_vault" "blog" {
     create = "3m"
     delete = "1m"
   }
-
-  # Azure level RBAC implemented 
-
-  # access_policy = [{
-  #   application_id          = azurerm_linux_web_app.blog-linux.identity[0].principal_id
-  #   certificate_permissions = ["value"]
-  #   key_permissions         = ["Key Vault Secrets User"]
-  #   object_id               = "value"
-  #   secret_permissions      = ["Key Vault Secrets User"]
-  #   storage_permissions     = ["value"]
-  #   tenant_id               = var.tenant_id
-  # }]
 }
 
 # one line password generation
@@ -50,12 +38,11 @@ resource "azurerm_key_vault_secret" "blog" {
   }
 }
 
-# Need to fix here - TF should be able to set RBAC groups
-# resource "azurerm_role_assignment" "rbac_assignment_reader" {
-#   scope                = azurerm_key_vault.blog.id
-#   role_definition_name = "Key Vault Secrets User"
-#   principal_id         = azurerm_linux_web_app.blog-linux.identity[0].principal_id
-# }
+resource "azurerm_role_assignment" "blog-vault-access" {
+  scope                = azurerm_key_vault.blog.id
+  role_definition_name = "Key Vault Secrets User"
+  principal_id         = azurerm_linux_web_app.blog-linux.identity[0].principal_id
+}
 
 # certificate generation
 # resource "azurerm_key_vault_key" "blog" {
