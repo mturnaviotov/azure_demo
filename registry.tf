@@ -7,15 +7,13 @@ resource "azurerm_container_registry" "blog" {
   depends_on          = [azurerm_resource_group.blog]
 }
 
-resource "azuredevops_serviceendpoint_dockerregistry" "blog" {
-  project_id            = azuredevops_project.blog.id
-  service_endpoint_name = "registry connection"
-  docker_username       = azurerm_container_registry.blog.admin_username
-  docker_password       = azurerm_container_registry.blog.admin_password
-  # registry_type         = "Others"
-
-  lifecycle {
-    ignore_changes = [registry_type, description, docker_email, docker_registry, docker_username]
-  }
-  depends_on = [azurerm_container_registry.blog]
+### Build step id from here
+resource "azuredevops_serviceendpoint_azurecr" "blog" {
+  azurecr_name              = "${var.appname}${random_id.app.hex}"
+  azurecr_spn_tenantid      = var.tenant_id
+  azurecr_subscription_id   = var.subscription_id
+  azurecr_subscription_name = var.subscription_name
+  project_id                = azuredevops_project.blog.id
+  resource_group            = azurerm_resource_group.blog.name
+  service_endpoint_name     = "blog-azurecr-${var.appname}${random_id.app.hex}"
 }
