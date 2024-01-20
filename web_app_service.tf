@@ -1,6 +1,6 @@
 resource "azurerm_service_plan" "sp-blog-linux" {
   location            = azurerm_resource_group.blog.location
-  name                = "blog"
+  name                = azurerm_resource_group.blog.name
   os_type             = "Linux"
   resource_group_name = azurerm_resource_group.blog.name
   sku_name            = "F1"
@@ -9,16 +9,6 @@ resource "azurerm_service_plan" "sp-blog-linux" {
 }
 
 resource "azurerm_linux_web_app" "blog-linux" {
-  app_settings = {
-    "VaultURL"                                   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault.blog.vault_uri}secrets/secret-key-base/)"
-    "APPLICATIONINSIGHTS_CONNECTION_STRING"      = azurerm_application_insights.blog.connection_string
-    "WEBSITES_ENABLE_APP_SERVICE_STORAGE"        = "true"
-    "XDT_MicrosoftApplicationInsights_Mode"      = "Recommended"
-    "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3"
-    # Rails env secret key, will be replaced via Vault. demo example
-    "SECRET_KEY_BASE" = "1234567"
-  }
-
   enabled             = true
   https_only          = true
   location            = azurerm_resource_group.blog.location
@@ -29,6 +19,17 @@ resource "azurerm_linux_web_app" "blog-linux" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  app_settings = {
+    "VaultURL"                                   = "@Microsoft.KeyVault(SecretUri=${azurerm_key_vault.blog.vault_uri}secrets/secret-key-base/)"
+    "APPLICATIONINSIGHTS_CONNECTION_STRING"      = azurerm_application_insights.blog.connection_string
+    "WEBSITES_ENABLE_APP_SERVICE_STORAGE"        = "true"
+    "XDT_MicrosoftApplicationInsights_Mode"      = "Recommended"
+    "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3"
+    "WEBSITE_ENABLE_SYNC_UPDATE_SITE"            = "true"
+    # Rails env secret key, will be replaced via Vault. demo example
+    "SECRET_KEY_BASE" = "1234567"
   }
 
   site_config {
@@ -58,9 +59,15 @@ resource "azurerm_linux_web_app" "blog-linux" {
 
   lifecycle {
     ignore_changes = [
-      app_settings["DOCKER_CUSTOM_IMAGE_NAME"], site_config["application_stack"]
+      app_settings["DOCKER_CUSTOM_IMAGE_NAME"], site_config["application_stack"], identity
     ]
   }
 
   depends_on = [azurerm_key_vault_secret.blog]
+}
+
+resource "azurerm_role_assignment" "blog-pull" {
+  scope                = azurerm_resource_group.blog.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_linux_web_app.blog-linux.identity[0].principal_id
 }
