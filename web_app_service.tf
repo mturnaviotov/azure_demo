@@ -3,7 +3,7 @@ resource "azurerm_service_plan" "sp-blog-linux" {
   name                = azurerm_resource_group.blog.name
   os_type             = "Linux"
   resource_group_name = azurerm_resource_group.blog.name
-  sku_name            = "F1"
+  sku_name            = var.app_service_plan
 
   depends_on = [azurerm_resource_group.blog]
 }
@@ -28,6 +28,7 @@ resource "azurerm_linux_web_app" "blog-linux" {
     "XDT_MicrosoftApplicationInsights_Mode"      = "Recommended"
     "ApplicationInsightsAgent_EXTENSION_VERSION" = "~3"
     "WEBSITE_ENABLE_SYNC_UPDATE_SITE"            = "true"
+    "WEBSITES_PORT"                              = "3000"
     # Rails env secret key, will be replaced via Vault. demo example
     "SECRET_KEY_BASE" = "1234567"
   }

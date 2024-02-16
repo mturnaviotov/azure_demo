@@ -31,6 +31,14 @@ variable "appname" {
   description = "app name"
 }
 
+# F1 - free, B1 minumum Recommended.
+# List to all available https://azure.microsoft.com/en-us/pricing/details/app-service/windows/#pricing
+variable "app_service_plan" {
+  type        = string
+  default     = "F1"
+  description = "app name"
+}
+
 variable "subscription_id" {
   type        = string
   description = "subscription_id"
